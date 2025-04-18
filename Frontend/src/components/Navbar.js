@@ -30,20 +30,36 @@ const Navbar = () => {
       }}
     >
       <div className="container">
-        <Link
-          className="navbar-brand"
-          to="/"
-          style={{
-            fontSize: "2rem",
-            fontFamily: "Snell Roundhand, cursive",
-            fontWeight: "bold",
-            fontStyle: "italic",
-            textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
-          }}
-        >
-          BookLand
-        </Link>
+        {/* Left: Brand + Greeting */}
+        <div className="d-flex align-items-center">
+          <Link
+            className="navbar-brand"
+            to="/"
+            style={{
+              fontSize: "2rem",
+              fontFamily: "Snell Roundhand, cursive",
+              fontWeight: "bold",
+              fontStyle: "italic",
+              textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
+              marginRight: "20px",
+            }}
+          >
+            BookLand
+          </Link>
+          <span
+            style={{
+              color: "white",
+              fontWeight: "bold",
+              fontStyle: "italic",
+              fontFamily: "Snell Roundhand, cursive",
+              fontSize: "18px",
+            }}
+          >
+            Hi {user?.name || "Reader"}
+          </span>
+        </div>
 
+        {/* Toggle Button for Mobile */}
         <button
           className="navbar-toggler"
           type="button"
@@ -53,6 +69,7 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
 
+        {/* Navigation Links */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
