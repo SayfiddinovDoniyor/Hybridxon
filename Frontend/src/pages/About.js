@@ -35,10 +35,7 @@ const About = () => {
       onMouseLeave={() => setOpacity(0.75)}
     >
       <h2 style={{ color: "#B80F57", fontWeight: "bold", fontStyle: "italic", fontFamily: "URW Chancery L, cursive" }}>About Us</h2>
-      <p style={{ color: "#FFFFFF", fontWeight: "bold", fontStyle: "italic", fontFamily: "URW Chancery L, cursive" }}>Welcome to your next chapter — a vibrant haven where book lovers from all 
-        walks of life connect, exchange timeless tales, and explore a universe of stories that live 
-        beyond the page. Whether you're here to share your favorite reads, discover new literary gems, or dive into digital 
-        editions, this is your sanctuary for all things bookish.</p>
+      <p style={{ color: "#FFFFFF", fontWeight: "bold", fontStyle: "italic", fontFamily: "URW Chancery L, cursive" }}>Welcome to your next chapter — a vibrant haven where book lovers from all walks of life connect, exchange timeless tales, and explore a universe of stories that live beyond the page. Whether you're here to share your favorite reads, discover new literary gems, or dive into digital editions, this is your sanctuary for all things bookish.</p>
       
       <div style={{ marginTop: "30px" }}>
         <h3 style={{ color: "#fff", fontSize: "1.5rem", marginBottom: "20px" }}>Our Team</h3>
@@ -53,9 +50,18 @@ const About = () => {
               <p style={{ color: "#555" }}>{member.role}</p>
             </div>
           ))}
+          
+      
         </div>
       </div>
-      
+
+      <div >
+        <h3 style={{ color: "#fff", fontSize: "1.5rem" }}>Who We Are</h3>
+        <p style={{ color: "#fff", fontSize: "1rem", fontStyle: "italic" }}>
+          We started out from humble beginnings in Tashkent and we're still here. Although these days we are packing and shipping millions rather than thousands of titles each year. We've grown by offering a great service to each and every customer, wherever they are in the world. That's what makes us proud.
+        </p>
+      </div>
+
       <div style={{ marginTop: "50px", padding: "20px", background: "rgba(0, 0, 0, 0.2)", borderRadius: "15px" }}>
         <h3 style={{ color: "#fff", fontSize: "1.5rem" }}>Leave Your Feedback</h3>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
