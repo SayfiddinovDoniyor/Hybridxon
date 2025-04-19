@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaSearch, FaShippingFast, FaPiggyBank } from "react-icons/fa";
 
 const Sell = () => {
   const [bookDetails, setBookDetails] = useState({
@@ -47,7 +48,63 @@ const Sell = () => {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "600px" }}>
+    <div className="container mt-5 mb-5">
+
+      {/* Section: Selling Books is Easy */}
+      <div
+        className="p-4"
+        style={{
+          backgroundColor: "#e3f2fd",
+          borderRadius: "20px",
+          boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)",
+          maxWidth: "900px",
+          margin: "0 auto 40px auto",
+          textAlign: "center",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
+        <h3
+          style={{
+            fontWeight: "600",
+            color: "#333",
+            marginBottom: "25px",
+          }}
+        >
+          Selling books for cash is easy!
+        </h3>
+
+        <div
+          className="row"
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            flexWrap: "wrap",
+            color: "#555",
+          }}
+        >
+          <div className="col-md-3 text-center mb-4">
+            <FaSearch size={50} color="#2196f3" />
+            <h5 className="mt-2">1. Find your books</h5>
+            <p style={{ fontSize: "14px" }}>Search above to get a quote.</p>
+          </div>
+          <div className="col-md-3 text-center mb-4">
+            <FaShippingFast size={50} color="#f57c00" />
+            <h5 className="mt-2">2. Ship them for free</h5>
+            <p style={{ fontSize: "14px" }}>
+              Print a prepaid shipping label.
+            </p>
+          </div>
+          <div className="col-md-3 text-center mb-4">
+            <FaPiggyBank size={50} color="#4caf50" />
+            <h5 className="mt-2">3. Get your cash!</h5>
+            <p style={{ fontSize: "14px" }}>
+              Get paid by check or PayPal.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sell Form */}
       <div
         className="p-4 shadow-lg"
         style={{
@@ -56,6 +113,8 @@ const Sell = () => {
           color: "#fff",
           fontFamily: "Snell Roundhand, cursive",
           boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)",
+          maxWidth: "600px",
+          margin: "0 auto",
         }}
       >
         <h2
