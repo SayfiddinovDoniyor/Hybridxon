@@ -13,6 +13,8 @@ public class Book {
     private String description;
     private String cover;
     private String file;
+
+    @Column(columnDefinition = "text[]")
     private String[] genres;
 
     public Long getId() {
