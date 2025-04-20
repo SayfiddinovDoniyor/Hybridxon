@@ -1,7 +1,13 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "books")
 public class Book {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String title;
     private String author;
     private String description;
@@ -9,40 +15,59 @@ public class Book {
     private String file;
     private String[] genres;
 
-    public String getTitle(){
-        return this.title;
+    public Long getId() {
+        return id;
     }
-    public String getAuthor(){
-        return this.author;
+
+    public void setId(Long id) {
+        this.id = id;
     }
-    public String getDescription(){
-        return this.description;
+
+    public String getTitle() {
+        return title;
     }
-    public String getCover(){
-        return this.cover;
-    }
-    public String getFile(){
-        return this.file;
-    }
-    public String[] getGenres(){
-        return this.genres;
-    }
-    public void setTitle(String title){
+
+    public void setTitle(String title) {
         this.title = title;
     }
-    public void setAuthor(String author){
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
         this.author = author;
     }
-    public void setDescription(String description){
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
         this.description = description;
     }
-    public void setCover(String cover){
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
         this.cover = cover;
     }
-    public void setFile(String file){
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
         this.file = file;
     }
-    public void setGenres(String[] genres){
+
+    public String[] getGenres() {
+        return genres;
+    }
+
+    public void setGenres(String[] genres) {
         this.genres = genres;
     }
 }

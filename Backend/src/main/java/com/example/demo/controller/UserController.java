@@ -18,18 +18,6 @@ public class UserController {
 
     public UserController(UserRepository repo) {
         this.repo = repo;
-        System.out.println("🔥 UserController initialized!");
-    }
-
-    @GetMapping
-    public List<User> getUsers() {
-        System.out.println("📥 GET /api/users hit!");
-        return repo.findAll();
-    }
-
-    @GetMapping("/ping")
-    public String ping() {
-        return "Hello from backend!";
     }
 
     @PostMapping
@@ -53,7 +41,7 @@ public class UserController {
             existingUser = repo.findByName(identifier);
         }
 
-        if (existingUser != null && existingUser.getPassword().equals(password)) {
+        if (existingUser != null && password.equals(existingUser.getPassword())) {
             return ResponseEntity.ok(existingUser);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
@@ -67,14 +55,10 @@ public class UserController {
                     if (updatedUser.getName() != null) user.setName(updatedUser.getName());
                     if (updatedUser.getEmail() != null) user.setEmail(updatedUser.getEmail());
                     if (updatedUser.getPassword() != null) user.setPassword(updatedUser.getPassword());
-                    if (updatedUser.getPhoto() != null) {
-                        user.setPhoto(updatedUser.getPhoto());
-                        System.out.println("📷 Updating photo for user ID: " + id);
-                    }
+                    if (updatedUser.getPhoto() != null) user.setPhoto(updatedUser.getPhoto());
                     if (updatedUser.getCoins() != null) user.setCoins(updatedUser.getCoins());
 
                     User savedUser = repo.save(user);
-                    System.out.println("✅ Saved user: " + savedUser.getId() + ", name=" + savedUser.getName());
                     return ResponseEntity.ok(savedUser);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
