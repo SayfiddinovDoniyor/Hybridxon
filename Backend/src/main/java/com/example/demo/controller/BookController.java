@@ -8,16 +8,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
     private final BookRepository bookRepository;
+    private final Path bookStoragePath = Paths.get("src/main/resources/books");
 
     public BookController(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
+        try {
+            Files.createDirectories(bookStoragePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create book storage directory", e);
+        }
     }
 
     @PostMapping("/upload")
@@ -29,15 +36,9 @@ public class BookController {
             @RequestParam String cover,
             @RequestParam String genres) {
 
-        System.out.println("Incoming book upload:");
-        System.out.println("Title: " + title);
-        System.out.println("Author: " + author);
-        System.out.println("PDF file: " + pdfFile.getOriginalFilename());
-
         try {
-            Path pdfPath = Paths.get("src/main/resources/books/" + pdfFile.getOriginalFilename());
+            Path pdfPath = bookStoragePath.resolve(pdfFile.getOriginalFilename());
             Files.write(pdfPath, pdfFile.getBytes());
-            System.out.println("PDF saved to: " + pdfPath);
 
             Book newBook = new Book();
             newBook.setTitle(title);
@@ -48,11 +49,62 @@ public class BookController {
             newBook.setGenres(genres.split(","));
 
             bookRepository.save(newBook);
-
-            return ResponseEntity.ok("Book uploaded and saved to database!");
+            return ResponseEntity.ok("Book uploaded and saved!");
         } catch (IOException e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
         }
+    }
+
+    @GetMapping
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        return bookRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateBook(
+            @PathVariable Long id,
+            @RequestBody Book updatedBook) {
+
+        Optional<Book> existingBookOpt = bookRepository.findById(id);
+        if (existingBookOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Book existingBook = existingBookOpt.get();
+        existingBook.setTitle(updatedBook.getTitle());
+        existingBook.setAuthor(updatedBook.getAuthor());
+        existingBook.setDescription(updatedBook.getDescription());
+        existingBook.setCover(updatedBook.getCover());
+        existingBook.setFile(updatedBook.getFile());
+        existingBook.setGenres(updatedBook.getGenres());
+
+        bookRepository.save(existingBook);
+        return ResponseEntity.ok("Book updated successfully");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBook(@PathVariable Long id) {
+        if (!bookRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        bookRepository.deleteById(id);
+        return ResponseEntity.ok("Book deleted");
+    }
+
+    @GetMapping("/author/{author}")
+    public List<Book> getBooksByAuthor(@PathVariable String author) {
+        return bookRepository.findByAuthor(author);
+    }
+
+    @GetMapping("/genre/{genre}")
+    public List<Book> getBooksByGenre(@PathVariable String genre) {
+        return bookRepository.findByGenre(genre);
     }
 }
