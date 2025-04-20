@@ -42,7 +42,9 @@ const About = () => {
         <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
           {[
             { name: "Asila Muxitdinova", role: "Co-Founder", img: "https://via.placeholder.com/150" },
-            { name: "Doniyor Sayfiddinov", role: "Co-Founder", img: "https://sl.bing.net/jFFa3Hgpbga" }
+            { name: "Doniyor Sayfiddinov", role: "Co-Founder", img: "https://sl.bing.net/jFFa3Hgpbga" },  
+            { name: "Ulug'bek Baxtiyorov", role: "Co-Founder", img: "https://sl.bing.net/jFFa3Hgpbga" }
+
           ].map((member, index) => (
             <div key={index} style={{ background: "#fff", padding: "20px", borderRadius: "15px", textAlign: "center", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", maxWidth: "200px" }}>
               <img src={member.img} alt={member.name} style={{ width: "100px", height: "100px", borderRadius: "50%" }} />
