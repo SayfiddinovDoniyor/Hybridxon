@@ -1,19 +1,26 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Book;
+import com.example.demo.repository.BookRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
-    @PostMapping("/api/books/upload")
+    private final BookRepository bookRepository;
+
+    public BookController(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    @PostMapping("/upload")
     public ResponseEntity<String> uploadBook(
             @RequestParam("pdf") MultipartFile pdfFile,
             @RequestParam String title,
@@ -28,33 +35,21 @@ public class BookController {
         System.out.println("PDF file: " + pdfFile.getOriginalFilename());
 
         try {
-            Path pdfPath = Paths.get("../Frontend/public/books/" + pdfFile.getOriginalFilename());
+            Path pdfPath = Paths.get("src/main/resources/books/" + pdfFile.getOriginalFilename());
             Files.write(pdfPath, pdfFile.getBytes());
             System.out.println("PDF saved to: " + pdfPath);
 
-            Path dataPath = Paths.get("../Frontend/src/components/booksData.js");
-            List<String> lines = Files.readAllLines(dataPath);
+            Book newBook = new Book();
+            newBook.setTitle(title);
+            newBook.setAuthor(author);
+            newBook.setDescription(description);
+            newBook.setCover(cover);
+            newBook.setFile(pdfFile.getOriginalFilename());
+            newBook.setGenres(genres.split(","));
 
-            int insertIndex = lines.lastIndexOf("]") - 1;
-            String newBookEntry = String.format(
-                    "    {\n" +
-                            "        title: \"%s\",\n" +
-                            "        author: \"%s\",\n" +
-                            "        description: \"%s\",\n" +
-                            "        cover: \"%s\",\n" +
-                            "        file: \"books/%s\",\n" +
-                            "        genres: [%s]\n" +
-                            "    },",
-                    title, author, description, cover,
-                    pdfFile.getOriginalFilename(),
-                    Arrays.stream(genres.split(",")).map(g -> "\"" + g.trim() + "\"").collect(Collectors.joining(", "))
-            );
+            bookRepository.save(newBook);
 
-            lines.add(insertIndex, newBookEntry);
-            Files.write(dataPath, lines);
-            System.out.println("Book entry added to booksData.js");
-
-            return ResponseEntity.ok("Book uploaded!");
+            return ResponseEntity.ok("Book uploaded and saved to database!");
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
