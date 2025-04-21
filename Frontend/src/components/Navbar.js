@@ -60,19 +60,21 @@ const Navbar = () => {
                 Home
               </Link>
             </li>
-
+            <li className="nav-item">
+              <Link className="nav-link" to="/market" style={linkStyle}>
+                Market
+              </Link>
+            </li>
             <li className="nav-item">
               <Link className="nav-link" to="/about" style={linkStyle}>
                 About
               </Link>
             </li>
-
             <li className="nav-item">
               <Link className="nav-link" to="/sell" style={linkStyle}>
                 Sell Your Book
               </Link>
             </li>
-
             <li className="nav-item">
               <button
                 className="btn btn-warning ms-2"

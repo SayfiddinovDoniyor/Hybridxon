@@ -16,6 +16,8 @@ import UserBar from "./components/UserBar";
 import AdminAddBook from "./pages/AdminAddBook";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminSellRequests from "./pages/AdminSellRequests";
+import Market from "./pages/Market";
+
 import "./styles.css";
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
         <UserBar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/market" element={<Market/>} />
           <Route path="/about" element={<About />} />
           <Route path="/signIn" element={<SignIn />} />
           <Route path="/sectionsPage" element={<SectionsPage />} />
@@ -42,9 +45,9 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/profile" element={<Profile />} /> 
           <Route path="/admin" element={<AdminPanel />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="add-book" element={<AdminAddBook />} />
-            <Route path="sell-requests" element={<AdminSellRequests />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="add-book" element={<AdminAddBook />} />
+          <Route path="sell-requests" element={<AdminSellRequests />} />
         </Route>
 
         </Routes>
