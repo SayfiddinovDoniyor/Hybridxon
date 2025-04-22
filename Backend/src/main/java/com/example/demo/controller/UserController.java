@@ -1,12 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.LoginRequest;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.dto.LoginRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -14,24 +15,40 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserRepository repo;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserRepository repo) {
+        this.repo = repo;
+        System.out.println("🔥 UserController initialized!");
+    }
+
+    @GetMapping
+    public List<User> getUsers() {
+        System.out.println("📥 GET /api/users hit!");
+        return repo.findAll();
+    }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "Hello from backend!";
     }
 
     @PostMapping
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already registered");
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        // Check if the email already exists
+        if (repo.existsByEmail(user.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("message", "This email has been registered"));
         }
 
-        if (userRepository.existsByName(user.getName())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already taken");
+        // Check if the username already exists
+        if (repo.existsByName(user.getName())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("message", "This username has been taken"));
         }
 
-        User savedUser = userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+        // Save the user if both email and username are available
+        return ResponseEntity.ok(repo.save(user));
     }
 
     @PostMapping("/login")
@@ -39,64 +56,40 @@ public class UserController {
         String identifier = loginRequest.getEmailOrUsername();
         String password = loginRequest.getPassword();
 
-        User user = userRepository.findByEmail(identifier);
-
-        if (user == null) {
-            user = userRepository.findByName(identifier);
+        // Attempt to find user by email first
+        User existingUser = repo.findByEmail(identifier);
+        if (existingUser == null) {
+            // If no user found by email, try by username
+            existingUser = repo.findByName(identifier);
         }
 
-        if (user != null && user.getPassword().equals(password)) {
-            return ResponseEntity.ok(user);
+        if (existingUser != null && existingUser.getPassword().equals(password)) {
+            return ResponseEntity.ok(existingUser);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("message", "Invalid credentials"));
         }
-    }
-
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    if (updatedUser.getName() != null) existingUser.setName(updatedUser.getName());
-                    if (updatedUser.getEmail() != null) existingUser.setEmail(updatedUser.getEmail());
-                    if (updatedUser.getPassword() != null) existingUser.setPassword(updatedUser.getPassword());
-                    if (updatedUser.getPhoto() != null) existingUser.setPhoto(updatedUser.getPhoto());
-                    if (updatedUser.getCoins() != null) existingUser.setCoins(updatedUser.getCoins());
+        return repo.findById(id)
+                .map(user -> {
+                    // Update user fields if they are not null
+                    if (updatedUser.getName() != null) user.setName(updatedUser.getName());
+                    if (updatedUser.getEmail() != null) user.setEmail(updatedUser.getEmail());
+                    if (updatedUser.getPassword() != null) user.setPassword(updatedUser.getPassword());
+                    if (updatedUser.getPhoto() != null) {
+                        user.setPhoto(updatedUser.getPhoto());
+                        System.out.println("📷 Updating photo for user ID: " + id);
+                    }
+                    if (updatedUser.getCoins() != null) user.setCoins(updatedUser.getCoins());
 
-                    User savedUser = userRepository.save(existingUser);
+                    // Save the updated user
+                    User savedUser = repo.save(user);
+                    System.out.println("✅ Saved user: " + savedUser.getId() + ", name=" + savedUser.getName());
                     return ResponseEntity.ok(savedUser);
                 })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-    }
-
-    @PatchMapping("/{id}/coins")
-    public ResponseEntity<User> updateUserCoins(@PathVariable Long id, @RequestBody Integer coins) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setCoins(coins);
-                    return ResponseEntity.ok(userRepository.save(user));
-                })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
