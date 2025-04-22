@@ -56,6 +56,10 @@ const AdminPanel = () => {
           <button style={buttonStyle} onClick={() => handleNavigate("add-book")}>
             Add Book
           </button>
+          <button style={buttonStyle} onClick={() => handleNavigate("buy-book")}>
+            Buy Book
+          </button>
+
         </div>
 
         {/* 🔥 Add this line to render nested routes */}

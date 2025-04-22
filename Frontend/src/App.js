@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminSellRequests from "./pages/AdminSellRequests";
 import Market from "./pages/Market";
 
+import AdminBuyRequests from "./pages/AdminBuyBook";
 import "./styles.css";
 
 function App() {
@@ -48,6 +49,8 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="add-book" element={<AdminAddBook />} />
           <Route path="sell-requests" element={<AdminSellRequests />} />
+          <Route path="buy-book" element={<AdminBuyRequests />} />
+
         </Route>
 
         </Routes>

@@ -67,27 +67,46 @@ const Market = () => {
                     <h3>{book.title}</h3>
                     <p><strong>Author:</strong> {book.author}</p>
                     <p>{book.description}</p>
-                    <a
-                    href={`#`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                        display: "inline-block",
-                        marginTop: "10px",
-                        padding: "10px 15px",
-                        background: "linear-gradient(135deg, #6a11cb, #2575fc)",
-                        color: "white",
-                        textDecoration: "none",
-                        borderRadius: "5px",
-                        fontWeight: "bold",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-                        transition: "transform 0.2s ease",
-                    }}
-                    onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
-                    onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
-                    >
-                    From: {book.price}
-                    </a>
+                    <button
+  onClick={() => {
+    // Get existing requests or empty array
+    const existingRequests = JSON.parse(localStorage.getItem("sellRequests")) || [];
+
+    // Create new request
+    const newRequest = {
+      title: book.title,
+      author: book.author,
+      price: book.price,
+      timestamp: new Date().toISOString(), // optional
+    };
+
+    // Add and save back to localStorage
+    const updatedRequests = [...existingRequests, newRequest];
+    localStorage.setItem("sellRequests", JSON.stringify(updatedRequests));
+
+    alert("Request saved locally to admin panel! ✅");
+  }}
+  style={{
+    display: "inline-block",
+    marginTop: "10px",
+    padding: "10px 15px",
+    background: "linear-gradient(135deg, #6a11cb, #2575fc)",
+    color: "white",
+    textDecoration: "none",
+    borderRadius: "5px",
+    fontWeight: "bold",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+    transition: "transform 0.2s ease",
+    border: "none",
+    cursor: "pointer",
+  }}
+  onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
+  onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
+>
+  From: {book.price}
+</button>
+
+
                 </div>
                 ))}
                 </div>
