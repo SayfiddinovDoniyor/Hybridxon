@@ -2,109 +2,143 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Book;
 import com.example.demo.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
+    @Value("${upload.path}")
+    private String uploadDir;
+
+    @Value("${booksdata.path}")
+    private String booksDataPath;
+
     private final BookRepository bookRepository;
-    private final Path bookStoragePath = Paths.get("src/main/resources/books");
 
     public BookController(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
-        try {
-            Files.createDirectories(bookStoragePath);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create book storage directory", e);
-        }
     }
 
+    // Endpoint to upload a new book
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadBook(
-            @RequestParam("pdf") MultipartFile pdfFile,
+    public ResponseEntity<Book> uploadBook(
             @RequestParam String title,
             @RequestParam String author,
             @RequestParam String description,
             @RequestParam String cover,
-            @RequestParam String genres) {
-
+            @RequestParam String genres,
+            @RequestParam("pdf") MultipartFile pdfFile
+    ) {
         try {
-            Path pdfPath = bookStoragePath.resolve(pdfFile.getOriginalFilename());
-            Files.write(pdfPath, pdfFile.getBytes());
+            // Create filename
+            String safeTitle = title.toLowerCase().replaceAll("[^a-z0-9]+", "-");
+            String fileName = safeTitle + ".pdf";
+            Path filePath = Paths.get(uploadDir, fileName);
 
-            Book newBook = new Book();
-            newBook.setTitle(title);
-            newBook.setAuthor(author);
-            newBook.setDescription(description);
-            newBook.setCover(cover);
-            newBook.setFile(pdfFile.getOriginalFilename());
-            newBook.setGenres(genres.split(","));
+            // Save file
+            Files.copy(pdfFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            bookRepository.save(newBook);
-            return ResponseEntity.ok("Book uploaded and saved!");
+            // Save to DB
+            Book book = new Book();
+            book.setTitle(title);
+            book.setAuthor(author);
+            book.setDescription(description);
+            book.setCover(cover);
+            book.setGenres(genres);
+            book.setFile("books/" + fileName);
+            Book savedBook = bookRepository.save(book);
+
+            // Update JS file
+            updateBooksDataFile(savedBook);
+
+            return ResponseEntity.ok(savedBook);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(null);
         }
     }
 
-    @GetMapping
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
-    }
+    // Method to update the booksData.js file
+    private void updateBooksDataFile(Book book) throws IOException {
+        // Path to the booksData.js file
+        Path path = Paths.get(booksDataPath);
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        return bookRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+        // Read the contents of the file
+        List<String> lines = Files.readAllLines(path);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateBook(
-            @PathVariable Long id,
-            @RequestBody Book updatedBook) {
+        // Log the file path and read contents for debugging
+        System.out.println("Reading booksData.js from: " + booksDataPath);
+        System.out.println("Current contents of booksData.js:");
+        lines.forEach(System.out::println);
 
-        Optional<Book> existingBookOpt = bookRepository.findById(id);
-        if (existingBookOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        // Prepare the new book entry in the format required by your booksData.js file
+        String newEntry = String.format(
+                "            {\n" +
+                        "                title: \"%s\",\n" +
+                        "                author: \"%s\",\n" +
+                        "                description: \"%s\",\n" +
+                        "                cover: \"%s\",\n" +
+                        "                file: \"%s\",\n" +
+                        "                genres: [%s]\n" +
+                        "            }",
+                book.getTitle(),
+                book.getAuthor(),
+                book.getDescription(),
+                book.getCover(),
+                book.getFile(),
+                Arrays.stream(book.getGenres().split(","))
+                        .map(g -> "\"" + g.trim() + "\"")
+                        .reduce((a, b) -> a + ", " + b).orElse("")
+        );
+
+        // Locate where the Books array is declared in the JS file
+        int arrayStartIndex = -1;
+        int arrayEndIndex = -1;
+
+        // Find the start and end indices of the array
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains("const Books = [")) {
+                arrayStartIndex = i;
+            } else if (lines.get(i).contains("]")) {
+                arrayEndIndex = i;
+                break;
+            }
         }
 
-        Book existingBook = existingBookOpt.get();
-        existingBook.setTitle(updatedBook.getTitle());
-        existingBook.setAuthor(updatedBook.getAuthor());
-        existingBook.setDescription(updatedBook.getDescription());
-        existingBook.setCover(updatedBook.getCover());
-        existingBook.setFile(updatedBook.getFile());
-        existingBook.setGenres(updatedBook.getGenres());
+        if (arrayStartIndex != -1 && arrayEndIndex != -1) {
+            // Remove the last closing bracket of the array
+            lines.remove(arrayEndIndex);
 
-        bookRepository.save(existingBook);
-        return ResponseEntity.ok("Book updated successfully");
-    }
+            // Add the new book to the end of the array
+            lines.add(arrayEndIndex, "            " + newEntry + ",");
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBook(@PathVariable Long id) {
-        if (!bookRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            // Add the closing bracket back
+            lines.add(arrayEndIndex + 1, "        ];");
+
+            // Write the updated lines back to the file
+            Files.write(path, lines);
+            System.out.println("Successfully updated booksData.js");
+        } else {
+            System.err.println("Couldn't locate Books array in the JS file.");
+            throw new IOException("Couldn't locate Books array in the JS file.");
         }
-        bookRepository.deleteById(id);
-        return ResponseEntity.ok("Book deleted");
     }
 
-    @GetMapping("/author/{author}")
-    public List<Book> getBooksByAuthor(@PathVariable String author) {
-        return bookRepository.findByAuthor(author);
-    }
-
-    @GetMapping("/genre/{genre}")
-    public List<Book> getBooksByGenre(@PathVariable String genre) {
-        return bookRepository.findByGenre(genre);
+    // Endpoint to get all books
+    @GetMapping("/")
+    public ResponseEntity<List<Book>> getAllBooks() {
+        try {
+            List<Book> books = bookRepository.findAll();
+            return ResponseEntity.ok(books);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 }
