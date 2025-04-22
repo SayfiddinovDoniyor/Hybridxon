@@ -11,9 +11,9 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const user = { name, email, password };
-
+  
     try {
       const response = await fetch("http://localhost:8080/api/users", {
         method: "POST",
@@ -22,20 +22,29 @@ const SignUp = () => {
         },
         body: JSON.stringify(user),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("user", JSON.stringify(data));
         navigate("/");
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to register. Try again.");
+        const message = errorData.message || "";
+  
+        if (message.includes("username")) {
+          setError("this username has taken");
+        } else if (message.includes("email")) {
+          setError("this email has been registered");
+        } else {
+          setError("Failed to register. Try again.");
+        }
       }
     } catch (error) {
       console.error("Error:", error);
       setError("Something went wrong.");
     }
   };
+  
 
   return (
     <div
@@ -43,10 +52,10 @@ const SignUp = () => {
       style={{
         background: "linear-gradient(135deg, #D8B5FF, #3BADAE)",
         borderRadius: "20px",
-        opacity,
         transition: "opacity 0.3s ease-in-out",
         padding: "2.5rem",
         boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+        opacity: opacity,
       }}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0.75)}
@@ -129,6 +138,7 @@ const SignUp = () => {
             required
           />
         </div>
+
         {error && (
           <div className="alert alert-danger">
             <strong>Error: </strong>{error}
@@ -144,8 +154,6 @@ const SignUp = () => {
             fontStyle: "italic",
             fontFamily: "URW Chancery L, cursive",
           }}
-
-          onClick={() => navigate("/")}
         >
           Create Account
         </button>
