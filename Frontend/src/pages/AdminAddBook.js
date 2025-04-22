@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AdminAddBook = () => {
   const [book, setBook] = useState({
@@ -11,6 +11,26 @@ const AdminAddBook = () => {
   });
 
   const [fileName, setFileName] = useState("");
+  const [books, setBooks] = useState([]);  // Books state will hold the dynamic list of books
+
+  // Fetch books from the backend
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/books/");
+      if (response.ok) {
+        const booksData = await response.json();
+        setBooks(booksData);
+      } else {
+        console.error("Failed to fetch books");
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();  // Initial fetch to load books
+  }, []);
 
   const handleChange = (e) => {
     setBook({ ...book, [e.target.name]: e.target.value });
@@ -47,6 +67,8 @@ const AdminAddBook = () => {
       });
 
       if (response.ok) {
+        // After successful upload, fetch the updated books list
+        await fetchBooks();
         alert("Book successfully uploaded!");
         setBook({
           title: "",
