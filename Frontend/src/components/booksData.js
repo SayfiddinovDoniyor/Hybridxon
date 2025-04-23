@@ -1,5 +1,4 @@
-const Books =
-        [
+const Books = [
             {
                 title: "The Great Gatsby",
                 author: "F. Scott Fitzgerald",
@@ -303,6 +302,6 @@ const Books =
                 price: "$41",
                 genres: ["NewUU"]
               }
-        ]
+        ];
 
 export default Books
