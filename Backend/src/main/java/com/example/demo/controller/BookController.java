@@ -67,27 +67,19 @@ public class BookController {
 
     // Method to update the booksData.js file
     private void updateBooksDataFile(Book book) throws IOException {
-        // Path to the booksData.js file
         Path path = Paths.get(booksDataPath);
-
-        // Read the contents of the file
         List<String> lines = Files.readAllLines(path);
-
-        // Log the file path and read contents for debugging
         System.out.println("Reading booksData.js from: " + booksDataPath);
-        System.out.println("Current contents of booksData.js:");
-        lines.forEach(System.out::println);
 
-        // Prepare the new book entry in the format required by your booksData.js file
         String newEntry = String.format(
-                "            {\n" +
-                        "                title: \"%s\",\n" +
-                        "                author: \"%s\",\n" +
-                        "                description: \"%s\",\n" +
-                        "                cover: \"%s\",\n" +
-                        "                file: \"%s\",\n" +
-                        "                genres: [%s]\n" +
-                        "            }",
+                "    {\n" +
+                        "        title: \"%s\",\n" +
+                        "        author: \"%s\",\n" +
+                        "        description: \"%s\",\n" +
+                        "        cover: \"%s\",\n" +
+                        "        file: \"%s\",\n" +
+                        "        genres: [%s]\n" +
+                        "    }",
                 book.getTitle(),
                 book.getAuthor(),
                 book.getDescription(),
@@ -98,37 +90,37 @@ public class BookController {
                         .reduce((a, b) -> a + ", " + b).orElse("")
         );
 
-        // Locate where the Books array is declared in the JS file
-        int arrayStartIndex = -1;
-        int arrayEndIndex = -1;
-
-        // Find the start and end indices of the array
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).contains("const Books = [")) {
-                arrayStartIndex = i;
-            } else if (lines.get(i).contains("]")) {
-                arrayEndIndex = i;
+        // Find the index of the line that contains just the closing "]" of the array
+        int insertIndex = -1;
+        for (int i = lines.size() - 1; i >= 0; i--) {
+            String trimmed = lines.get(i).trim();
+            if (trimmed.equals("]") || trimmed.equals("];")) {
+                insertIndex = i;
                 break;
             }
         }
 
-        if (arrayStartIndex != -1 && arrayEndIndex != -1) {
-            // Remove the last closing bracket of the array
-            lines.remove(arrayEndIndex);
-
-            // Add the new book to the end of the array
-            lines.add(arrayEndIndex, "            " + newEntry + ",");
-
-            // Add the closing bracket back
-            lines.add(arrayEndIndex + 1, "        ];");
-
-            // Write the updated lines back to the file
-            Files.write(path, lines);
-            System.out.println("Successfully updated booksData.js");
-        } else {
+        if (insertIndex == -1) {
             System.err.println("Couldn't locate Books array in the JS file.");
             throw new IOException("Couldn't locate Books array in the JS file.");
         }
+
+        // Check if the last book ends with a comma; if not, add one
+        int lastBookIndex = insertIndex - 1;
+        while (lastBookIndex > 0 && lines.get(lastBookIndex).trim().isEmpty()) {
+            lastBookIndex--;
+        }
+        String lastLine = lines.get(lastBookIndex);
+        if (!lastLine.trim().endsWith(",")) {
+            lines.set(lastBookIndex, lastLine + ",");
+        }
+
+        // Insert the new book before the closing ]
+        lines.add(insertIndex, newEntry);
+
+        // Write everything back
+        Files.write(path, lines);
+        System.out.println("Successfully updated booksData.js");
     }
 
     // Endpoint to get all books
